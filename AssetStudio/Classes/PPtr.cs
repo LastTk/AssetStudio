@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace AssetStudio
 {
@@ -124,6 +125,15 @@ namespace AssetStudio
             }
 
             m_PathID = m_Object.m_PathID;
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+            {
+                // { "fileName", assetsFile.fullName },
+                { "fileID", m_FileID },
+                { "pathID", m_PathID }
+            };
         }
 
         public bool IsNull => m_PathID == 0 || m_FileID < 0;

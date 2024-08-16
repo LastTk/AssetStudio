@@ -29,6 +29,25 @@ namespace AssetStudio
                 outWeight = readerFunc();
             }
         }
+        public Dictionary<string, object> export()
+        {
+            var result = new Dictionary<string, object>
+        {
+            { "Time", time },
+            { "Value", value },
+            { "InSlope", inSlope },
+            { "OutSlope", outSlope }
+        };
+
+            if (weightedMode != null)
+            {
+                result.Add("WeightedMode", weightedMode);
+                result.Add("InWeight", inWeight);
+                result.Add("OutWeight", outWeight);
+            }
+
+            return result;
+        }
     }
 
     public class AnimationCurve<T>
@@ -55,6 +74,16 @@ namespace AssetStudio
                 m_RotationOrder = reader.ReadInt32();
             }
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "Curve", m_Curve?.Select(keyframe => keyframe.export()).ToList() },
+            { "PreInfinity", m_PreInfinity },
+            { "PostInfinity", m_PostInfinity },
+            { "RotationOrder", m_RotationOrder }
+        };
+        }
     }
 
     public class QuaternionCurve
@@ -66,6 +95,14 @@ namespace AssetStudio
         {
             curve = new AnimationCurve<Quaternion>(reader, reader.ReadQuaternion);
             path = reader.ReadAlignedString();
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "curve", curve?.export() },
+            { "path", path }
+        };
         }
     }
 
@@ -273,6 +310,19 @@ namespace AssetStudio
             m_PreInfinity = reader.ReadInt32();
             m_PostInfinity = reader.ReadInt32();
         }
+
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "Path", m_Path },
+            { "Times", m_Times?.UnpackInts() },
+            { "Values", m_Values?.UnpackQuats() },
+            { "Slopes", m_Slopes?.UnpackFloats(0, 0) },
+            { "PreInfinity", m_PreInfinity },
+            { "PostInfinity", m_PostInfinity }
+        };
+        }
     }
 
     public class Vector3Curve
@@ -284,6 +334,14 @@ namespace AssetStudio
         {
             curve = new AnimationCurve<Vector3>(reader, reader.ReadVector3);
             path = reader.ReadAlignedString();
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "curve", curve?.export() },
+            { "path", path }
+        };
         }
     }
 
@@ -304,6 +362,18 @@ namespace AssetStudio
             classID = (ClassIDType)reader.ReadInt32();
             script = new PPtr<MonoScript>(reader);
         }
+
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "curve", curve?.export() },
+            { "attribute", attribute },
+            { "path", path },
+            { "classID", classID },
+            { "script", script?.export() }
+        };
+        }
     }
 
     public class PPtrKeyframe
@@ -316,6 +386,14 @@ namespace AssetStudio
         {
             time = reader.ReadSingle();
             value = new PPtr<Object>(reader);
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "time", time },
+            { "value", value?.export() }
+        };
         }
     }
 
@@ -341,6 +419,17 @@ namespace AssetStudio
             path = reader.ReadAlignedString();
             classID = reader.ReadInt32();
             script = new PPtr<MonoScript>(reader);
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "curve", curve?.Select(kf => kf.export()).ToList() },
+            { "attribute", attribute },
+            { "path", path },
+            { "classID", classID },
+            { "script", script?.export()}
+        };
         }
     }
 
@@ -368,6 +457,15 @@ namespace AssetStudio
             t = version[0] > 5 || (version[0] == 5 && version[1] >= 4) ? reader.ReadVector3() : (Vector3)reader.ReadVector4();//5.4 and up
             q = reader.ReadQuaternion();
             s = version[0] > 5 || (version[0] == 5 && version[1] >= 4) ? reader.ReadVector3() : (Vector3)reader.ReadVector4();//5.4 and up
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "Translation", new { t.X, t.Y, t.Z } },
+            { "Rotation", new { q.X, q.Y, q.Z, q.W } },
+            { "Scale", new { s.X, s.Y, s.Z } }
+        };
         }
     }
 
@@ -453,6 +551,20 @@ namespace AssetStudio
                 }
             }
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "RootX", m_RootX?.export() },
+            { "LookAtPosition", new { m_LookAtPosition.X, m_LookAtPosition.Y, m_LookAtPosition.Z } },
+            { "LookAtWeight", new { m_LookAtWeight.X, m_LookAtWeight.Y, m_LookAtWeight.Z, m_LookAtWeight.W } },
+            /*{ "GoalArray", m_GoalArray?.Select(goal => goal.export()).ToList() },
+            { "LeftHandPose", m_LeftHandPose?.export() },
+            { "RightHandPose", m_RightHandPose?.export() },*/
+            { "DoFArray", m_DoFArray },
+            { "TDoFArray", m_TDoFArray?.Select(t => new { t.X, t.Y, t.Z }).ToList() }
+        };
+        }
     }
 
     public class StreamedClip
@@ -499,6 +611,26 @@ namespace AssetStudio
                 var d2 = dy + dy + dy - d1 - d1 - coeff[1] / length;
                 return d2 / dx;
             }
+            public Dictionary<string, object> export()
+            {
+                return new Dictionary<string, object>
+                {
+                    { "Index", index },
+                    { "Coeff", coeff },
+                    { "Value", value },
+                    { "OutSlope", outSlope },
+                    { "InSlope", inSlope }
+                };
+            }
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "Data", data },
+            { "CurveCount", curveCount },
+            { "Frames", ReadData().Select(frame => frame.export()).ToList() }
+        };
         }
 
         public class StreamedFrame
@@ -516,6 +648,14 @@ namespace AssetStudio
                 {
                     keyList[i] = new StreamedCurveKey(reader);
                 }
+            }
+            public Dictionary<string, object> export()
+            {
+                return new Dictionary<string, object>
+            {
+                { "Time", time },
+                { "KeyList", keyList.Select(key => key.export()).ToList() }
+            };
             }
         }
 
@@ -569,6 +709,17 @@ namespace AssetStudio
             m_BeginTime = reader.ReadSingle();
             m_SampleArray = reader.ReadSingleArray();
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+            {
+                { "FrameCount", m_FrameCount },
+                { "CurveCount", m_CurveCount },
+                { "SampleRate", m_SampleRate },
+                { "BeginTime", m_BeginTime },
+                { "SampleArray", m_SampleArray }
+            };
+        }
     }
 
     public class ConstantClip
@@ -578,6 +729,13 @@ namespace AssetStudio
         public ConstantClip(ObjectReader reader)
         {
             data = reader.ReadSingleArray();
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+            {
+                { "Data", data }
+            };
         }
     }
 
@@ -599,6 +757,16 @@ namespace AssetStudio
             m_Type = reader.ReadUInt32();
             m_Index = reader.ReadUInt32();
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "ID", m_ID },
+            { "TypeID", m_TypeID },
+            { "Type", m_Type },
+            { "Index", m_Index }
+        };
+        }
     }
 
     public class ValueArrayConstant
@@ -613,6 +781,13 @@ namespace AssetStudio
             {
                 m_ValueArray[i] = new ValueConstant(reader);
             }
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "ValueArray", m_ValueArray.Select(value => value.export()).ToList() }
+        };
         }
     }
 
@@ -681,6 +856,16 @@ namespace AssetStudio
             bindings.genericBindings = genericBindings.ToArray();
             return bindings;
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "StreamedClip", m_StreamedClip?.export() },
+            { "DenseClip", m_DenseClip?.export() },
+            { "ConstantClip", m_ConstantClip?.export() },
+            { "Binding", m_Binding?.export() }
+        };
+        }
     }
 
     public class ValueDelta
@@ -692,6 +877,14 @@ namespace AssetStudio
         {
             m_Start = reader.ReadSingle();
             m_Stop = reader.ReadSingle();
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "Start", m_Start },
+            { "Stop", m_Stop }
+        };
         }
     }
 
@@ -787,6 +980,41 @@ namespace AssetStudio
             m_HeightFromFeet = reader.ReadBoolean();
             reader.AlignStream();
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "DeltaPose", m_DeltaPose?.export() },
+            { "StartX", m_StartX?.export() },
+            { "StopX", m_StopX?.export() },
+            { "LeftFootStartX", m_LeftFootStartX?.export() },
+            { "RightFootStartX", m_RightFootStartX?.export() },
+            { "MotionStartX", m_MotionStartX?.export() },
+            { "MotionStopX", m_MotionStopX?.export() },
+            { "AverageSpeed", new { m_AverageSpeed.X, m_AverageSpeed.Y, m_AverageSpeed.Z } },
+            { "Clip", m_Clip?.export() },
+            { "StartTime", m_StartTime },
+            { "StopTime", m_StopTime },
+            { "OrientationOffsetY", m_OrientationOffsetY },
+            { "Level", m_Level },
+            { "CycleOffset", m_CycleOffset },
+            { "AverageAngularSpeed", m_AverageAngularSpeed },
+            { "IndexArray", m_IndexArray },
+            { "ValueArrayDelta", m_ValueArrayDelta?.Select(vd => vd.export()).ToList() },
+            { "ValueArrayReferencePose", m_ValueArrayReferencePose },
+            { "Mirror", m_Mirror },
+            { "LoopTime", m_LoopTime },
+            { "LoopBlend", m_LoopBlend },
+            { "LoopBlendOrientation", m_LoopBlendOrientation },
+            { "LoopBlendPositionY", m_LoopBlendPositionY },
+            { "LoopBlendPositionXZ", m_LoopBlendPositionXZ },
+            { "StartAtOrigin", m_StartAtOrigin },
+            { "KeepOriginalOrientation", m_KeepOriginalOrientation },
+            { "KeepOriginalPositionY", m_KeepOriginalPositionY },
+            { "KeepOriginalPositionXZ", m_KeepOriginalPositionXZ },
+            { "HeightFromFeet", m_HeightFromFeet }
+        };
+        }
     }
 
     public class GenericBinding
@@ -822,6 +1050,19 @@ namespace AssetStudio
                 isIntCurve = reader.ReadByte();
             }
             reader.AlignStream();
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+        {
+            { "Path", path },
+            { "Attribute", attribute },
+            { "Script", script?.export() },
+            { "TypeID", typeID.ToString() },
+            { "CustomType", customType },
+            { "IsPPtrCurve", isPPtrCurve },
+            { "IsIntCurve", isIntCurve }
+        };
         }
     }
 
@@ -883,6 +1124,14 @@ namespace AssetStudio
 
             return null;
         }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+            {
+                { "GenericBindings", genericBindings?.Select(binding => binding.export()).ToList() },
+                { "PPtrCurveMapping", pptrCurveMapping?.Select(pptr => pptr?.export()).ToList() }
+            };
+        }
     }
 
     public class AnimationEvent
@@ -909,6 +1158,19 @@ namespace AssetStudio
                 intParameter = reader.ReadInt32();
             }
             messageOptions = reader.ReadInt32();
+        }
+        public Dictionary<string, object> export()
+        {
+            return new Dictionary<string, object>
+            {
+                { "time", time },
+                { "functionName", functionName },
+                { "data", data },
+                { "objectReferenceParameter", objectReferenceParameter?.export()},
+                { "floatParameter", floatParameter },
+                { "intParameter", intParameter },
+                { "messageOptions", messageOptions }
+            };
         }
     }
 
@@ -1049,6 +1311,43 @@ namespace AssetStudio
             {
                 reader.AlignStream();
             }
+        }
+
+        private Dictionary<string, object> ExportBounds(AABB bounds)
+        {
+            if (bounds == null) return null;
+
+            return new Dictionary<string, object>
+        {
+            { "Center", new { bounds.m_Center.X, bounds.m_Center.Y, bounds.m_Center.Z } },
+            { "Extent", new { bounds.m_Extent.X , bounds.m_Extent.Y, bounds.m_Extent.Z } }
+        };
+        }
+        public Dictionary<string, object> export()
+        {
+            var result = new Dictionary<string, object>
+        {
+            { "AnimationType", m_AnimationType.ToString() },
+            { "Legacy", m_Legacy },
+            { "Compressed", m_Compressed },
+            { "UseHighQualityCurve", m_UseHighQualityCurve },
+            { "SampleRate", m_SampleRate },
+            { "WrapMode", m_WrapMode },
+            { "Bounds", ExportBounds(m_Bounds) },
+            { "MuscleClipSize", m_MuscleClipSize },
+            { "MuscleClip", m_MuscleClip?.export() },
+            { "ClipBindingConstant", m_ClipBindingConstant?.export() },
+            { "Events", m_Events?.Select(e => e.export()).ToList() },
+            { "RotationCurves", m_RotationCurves?.Select(rc => rc.export()).ToList() },
+            { "CompressedRotationCurves", m_CompressedRotationCurves?.Select(crc => crc.export()).ToList() },
+            { "EulerCurves", m_EulerCurves?.Select(ec => ec.export()).ToList() },
+            { "PositionCurves", m_PositionCurves?.Select(pc => pc.export()).ToList() },
+            { "ScaleCurves", m_ScaleCurves?.Select(sc => sc.export()).ToList() },
+            { "FloatCurves", m_FloatCurves?.Select(fc => fc.export()).ToList() },
+            { "PPtrCurves", m_PPtrCurves?.Select(ppc => ppc.export()).ToList() }
+        };
+
+            return result;
         }
     }
 }

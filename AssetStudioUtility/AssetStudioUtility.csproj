@@ -7,6 +7,7 @@
     <FileVersion>0.16.0.0</FileVersion>
     <Copyright>Copyright © Perfare 2018-2022</Copyright>
     <DebugType>embedded</DebugType>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>

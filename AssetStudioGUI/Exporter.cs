@@ -248,6 +248,16 @@ namespace AssetStudioGUI
             return false;
         }
 
+        public static bool ExportAnimationClip(AssetItem item, string exportPath)
+        {
+            if(!TryExportFile(exportPath, item, ".json", out var exportFullPath))
+            {
+                return false;
+            }
+            File.WriteAllText(exportFullPath, JsonConvert.SerializeObject(((AnimationClip)item.Asset).export(), Formatting.Indented));
+            return true;
+        }
+
         public static bool ExportRawFile(AssetItem item, string exportPath)
         {
             if (!TryExportFile(exportPath, item, ".dat", out var exportFullPath))
@@ -370,7 +380,7 @@ namespace AssetStudioGUI
                 case ClassIDType.Animator:
                     return ExportAnimator(item, exportPath);
                 case ClassIDType.AnimationClip:
-                    return false;
+                    return ExportAnimationClip(item, exportPath);
                 default:
                     return ExportRawFile(item, exportPath);
             }

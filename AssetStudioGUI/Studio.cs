@@ -38,6 +38,7 @@ namespace AssetStudioGUI
         public static AssemblyLoader assemblyLoader = new AssemblyLoader();
         public static List<AssetItem> exportableAssets = new List<AssetItem>();
         public static List<AssetItem> visibleAssets = new List<AssetItem>();
+        public static List<(PPtr<Object>, string)>  containers = new List<(PPtr<Object>, string)>(130000000);
         internal static Action<string> StatusStripUpdate = x => { };
 
         public static int ExtractFolder(string path, string savePath)
@@ -135,13 +136,14 @@ namespace AssetStudioGUI
         public static (string, List<TreeNode>) BuildAssetData()
         {
             StatusStripUpdate("Building asset list...");
+            Progress.Reset();
 
             string productName = null;
             var objectCount = assetsManager.assetsFileList.Sum(x => x.Objects.Count);
             var objectAssetItemDic = new Dictionary<Object, AssetItem>(objectCount);
-            var containers = new List<(PPtr<Object>, string)>();
+
+
             int i = 0;
-            Progress.Reset();
             foreach (var assetsFile in assetsManager.assetsFileList)
             {
                 foreach (var asset in assetsFile.Objects)
@@ -213,9 +215,17 @@ namespace AssetStudioGUI
                                 var preloadIndex = m_Container.Value.preloadIndex;
                                 var preloadSize = m_Container.Value.preloadSize;
                                 var preloadEnd = preloadIndex + preloadSize;
-                                for (int k = preloadIndex; k < preloadEnd; k++)
+                                for (long k = preloadIndex; k < preloadEnd; k++)
                                 {
-                                    containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                    try
+                                    {
+                                        containers.Add((m_AssetBundle.m_PreloadTable[k], m_Container.Key));
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        Console.WriteLine(e);
+                                        throw e;
+                                    }
                                 }
                             }
                             assetItem.Text = m_AssetBundle.m_Name;
@@ -486,6 +496,7 @@ namespace AssetStudioGUI
                                         new XElement("Type", new XAttribute("id", (int)asset.Type), asset.TypeString),
                                         new XElement("PathID", asset.m_PathID),
                                         new XElement("Source", asset.SourceFile.fullName),
+                                        new XElement("Source_file", asset.SourceFile.originalPath),
                                         new XElement("Size", asset.FullSize)
                                     )
                                 )
